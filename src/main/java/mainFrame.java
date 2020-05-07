@@ -1,3 +1,9 @@
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -15,6 +21,8 @@ public class mainFrame extends javax.swing.JFrame {
      */
     public mainFrame() {
         initComponents();
+        initialDatabase();
+        loadTabel();
     }
 
     /**
@@ -231,7 +239,17 @@ public class mainFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
-        // TODO add your handling code here:
+        try {
+            String sql = "INSERT INTO buku(no_buku, judul, pengarang, tahun, penerbit) VALUES ('" + tfNo.getText() + "','" + tfJudul.getText() + "', '" + tfPengarang.getText() + "', '" + tfTahun.getText() +"', '" + tfPenerbit.getText() +"')";
+            java.sql.Connection conn = (Connection) config.configDB();
+            java.sql.PreparedStatement pst = conn.prepareStatement(sql);
+            pst.execute();
+            JOptionPane.showMessageDialog(null, "Penyimpanan Data Berhasil");
+            loadTabel();
+            clearForm();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
     }//GEN-LAST:event_btnSimpanActionPerformed
 
     private void btnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditActionPerformed
@@ -243,11 +261,7 @@ public class mainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnBacaTblActionPerformed
 
     private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
-        tfNo.setText("");
-        tfJudul.setText("");
-        tfPengarang.setText("");
-        tfTahun.setText("");
-        tfPenerbit.setText("");
+        clearForm();
     }//GEN-LAST:event_btnClearActionPerformed
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
@@ -317,4 +331,52 @@ public class mainFrame extends javax.swing.JFrame {
     private javax.swing.JTextField tfPengarang;
     private javax.swing.JTextField tfTahun;
     // End of variables declaration//GEN-END:variables
+    
+    private void loadTabel() {
+        DefaultTableModel model = new DefaultTableModel();
+        model.addColumn("no_buku");
+        model.addColumn("judul");
+        model.addColumn("pengarang");
+        model.addColumn("tahun");
+        model.addColumn("penerbit");
+
+        try {
+            int no = 1;
+            String sql = "select * from buku";
+            java.sql.Connection conn = (Connection) config.configDB();
+            java.sql.Statement stm = conn.createStatement();
+            java.sql.ResultSet res = stm.executeQuery(sql);
+            while (res.next()) {
+                model.addRow(new Object[]{res.getString(1), res.getString(2), res.getString(3), res.getString(4), res.getString(5)});
+            }
+            tblBuku.setModel(model);
+//            tblBuku.getColumn("id_barang").setCellEditor(new Editor_name(new JCheckBox()));
+        } catch (Exception e) {
+
+        }
+    }
+    
+    private void initialDatabase() {
+        try {
+            String query = "CREATE TABLE IF NOT EXISTS buku ("
+                + "no_buku int primary key,"
+                + "judul TEXT,"
+                + "pengarang TEXT,"
+                + "tahun TEXT,"
+                + "penerbit TEXT)";
+            java.sql.Connection conn = (Connection) config.configDB();
+            java.sql.Statement stm = conn.createStatement();
+            stm.execute(query);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
+    }
+    
+    private void clearForm() {
+        tfNo.setText("");
+        tfJudul.setText("");
+        tfPengarang.setText("");
+        tfTahun.setText("");
+        tfPenerbit.setText("");
+    }
 }
